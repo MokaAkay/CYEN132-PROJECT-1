@@ -68,7 +68,13 @@ class PongGame(GameState):
 
         #adds all of the required entities to the entities list
         #change "true" to "false" if you want the paddle to be an AI
-        entities_list = [Paddle(40, 10, 1, True), Paddle(display_width-50, 20, 2, False), Ball(display_width/2, display_height/2, 1)]
+        
+        #Paddle(xPos, yPos, speed, team, isPlayer)
+        #Ball(xPos, yPos, startingSpeed)
+        paddle1 =Paddle(40, 4, 5, 1, True)
+        paddle2 =Paddle(display_width-50, 20, 10, 2, False)
+        ball = Ball(display_width/2, display_height/2, 1)
+        entities_list = [paddle1, paddle2, ball]
 
 
 #Param xPos, the initial x position of the paddle
@@ -77,12 +83,12 @@ class PongGame(GameState):
 #Param isPlayer if it is a player, will allow player input
 # if not, AI will take control of the paddle
 class Paddle(Entity):
-    def __init__(self, xPos, yPos, team, isPlayer):
+    def __init__(self, xPos, yPos, speed, team, isPlayer):
         paddleImg=pygame.image.load("paddle.png")
         Entity.__init__(self, xPos, yPos, paddleImg)
         self.team = team
         self.isPlayer = isPlayer
-        self.speed = 10
+        self.speed = speed
 
     #in this method the paddle will try to chase the ball at it's speed. It does this by comparing the location of the ball to the location of the paddle
     def chaseBall(self):
@@ -172,7 +178,7 @@ class Ball(Entity):
         #TODO fix this. Im not really sure how to detect when the ball hits the paddle if someone wants to figure it out?
         #entities_list[0] is player 1's paddle and entities_list[2] is player 2's paddle
         if(self.xPos <= entities_list[0].xPos and entities_list[0].yPos - self.yPos > 0 and self.yPosEnd - entities_list[0].yPosEnd):
-            hitPaddle(entities_list[0])
+            self.hitPaddle(entities_list[0])
         #every time the ball bounces x number of times, increase speed
         #ball bounces off walls
         if (self.yPosEnd>=display_height or self.yPos <=0):
