@@ -17,8 +17,15 @@ entities_list = []
 #THE ENTITY CLASS IS DONE. DON'T CHANGE THIS (unless you want to try to implement animations for each of the sprites.)
 class Entity(object):
     def __init__(self, xPos, yPos, pygameImage):
+        #xPos is the left of the entity
+        #yPos is the top of the entity
+        #xPosEnd is the right of the entity
+        #yPosEnd is the bottom of the entity
+        #xPosEnd and yPosEnd are untested I may have gotten these values incorrectly.
         self.xPos = xPos
         self.yPos = yPos
+        self.xPosEnd = xPos+pygameImage.get_rect().bottomright[0]
+        self.yPosEnd = yPos+pygameImage.get_rect().bottomleft[1]
         self.pygameImage = pygameImage
     #update is the BEHAVIOR of the entity. It is implemented in the entities subclass. it will raise NotImplementedError if it is not implemented in a subclass of entity
     def update(self):
@@ -41,7 +48,6 @@ class GameState(object):
             entity.update()
 
     def renderEntities(self):
-        print (entities_list)
         for entity in entities_list:
             entity.render()
 
