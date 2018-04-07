@@ -1,6 +1,7 @@
 
 import pygame
 from random import randint
+import math
 
 display_width = 800
 display_height = 600
@@ -66,7 +67,8 @@ class PongGame(GameState):
         #TODO ask if 1 player or 2 players
 
         #adds all of the required entities to the entities list
-        entities_list = [Paddle(20, 10, 1, True), Paddle(display_width-20, 20, 2, True), Ball(display_width/2, display_height/2, 4)]
+        #change "true" to "false" if you want the paddle to be an AI
+        entities_list = [Paddle(40, 10, 1, True), Paddle(display_width-50, 20, 2, False), Ball(display_width/2, display_height/2, 1)]
 
 
 #Param xPos, the initial x position of the paddle
@@ -81,6 +83,20 @@ class Paddle(Entity):
         self.team = team
         self.isPlayer = isPlayer
         self.speed = 10
+
+
+    def chaseBall(self):
+            mid_of_ball = (entities_list[2].yPos + entities_list[2].yPosEnd)/2
+            mid_of_paddle = (self.yPos + self.yPosEnd)/2
+            if (mid_of_ball > mid_of_paddle):
+                if self.yPosEnd<display_height:
+                    self.yPos+=self.speed
+                    self.yPosEnd += self.speed
+            elif (mid_of_ball < mid_of_paddle):
+                if self.yPos>=0:
+                    self.yPos-=self.speed
+                    self.yPosEnd -= self.speed
+                
     def update(self):
         #TODO paddles shouldn't be able to go off screen
         if (self.isPlayer):
@@ -88,19 +104,29 @@ class Paddle(Entity):
                 #Player 1 input goes here
                 #This stuff is for now, later we will use GPIO input instead with switches
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
-                        self.yPos +=self.speed
-                    elif event.key == pygame.K_UP:
-                        self.yPos -= self.speed
+                    if event.key == pygame.K_s:
+                        if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                    elif event.key == pygame.K_w:
+                        if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
             if (self.team == 2):
-                pass
                 #Player 1 input goes here
                 #if up is held, decrease the y position by speed
                 #if down is held, decrease the y position by speed
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                    elif event.key == pygame.K_UP:
+                        if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
         if (not self.isPlayer):
-            pass
-            #Paddle AI goes here
-            #paddle AI will "Chase" the ball's Y position
+            self.chaseBall()
 
         
 
@@ -113,12 +139,29 @@ class Ball(Entity):
         self.bounces=0
         self.direction = randint(0,360)
 
+    
+        
+    #proceeds in the direction it's currently heading
+    def go(self):
+        radians = (6.28*self.direction)/360
+        xSpeed = self.speed*math.cos(radians)
+        ySpeed = self.speed*math.sin(radians)
+        self.xPos += xSpeed
+        self.xPosEnd+=xSpeed
+        self.yPos += ySpeed
+        self.yPosEnd +=ySpeed
+
+    def hitSide(self):
+        self.direction = 360-self.direction
+        
     def update(self):
-        pass
         #the behavior of the ball goes here
         #if the ball hits a paddle
         #every time the ball bounces x number of times, increase speed
         #ball bounces off walls
+        if (self.yPosEnd>=display_height or self.yPos <=0):
+            self.hitSide()
+        self.go()
         
 
 ######################################
