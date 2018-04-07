@@ -84,10 +84,12 @@ class Paddle(Entity):
         self.isPlayer = isPlayer
         self.speed = 10
 
-
+    #in this method the paddle will try to chase the ball at it's speed. It does this by comparing the location of the ball to the location of the paddle
     def chaseBall(self):
+            #NOTE: the ball object is in global variable entities_list[2]
             mid_of_ball = (entities_list[2].yPos + entities_list[2].yPosEnd)/2
             mid_of_paddle = (self.yPos + self.yPosEnd)/2
+            #if the center of the ball is lower or higher on the screen than the center of the paddle, the paddle will change its position by its speed every time this entity updates
             if (mid_of_ball > mid_of_paddle):
                 if self.yPosEnd<display_height:
                     self.yPos+=self.speed
@@ -125,6 +127,7 @@ class Paddle(Entity):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
+        #if the paddle is not a player(human) it will take control of itself
         if (not self.isPlayer):
             self.chaseBall()
 
@@ -143,20 +146,33 @@ class Ball(Entity):
         
     #proceeds in the direction it's currently heading
     def go(self):
+        #converts the direction from degrees to radians
         radians = (6.28*self.direction)/360
+        #converts the radians and speed to x and y components
         xSpeed = self.speed*math.cos(radians)
         ySpeed = self.speed*math.sin(radians)
+        #updates the balls position
         self.xPos += xSpeed
         self.xPosEnd+=xSpeed
         self.yPos += ySpeed
         self.yPosEnd +=ySpeed
 
     def hitSide(self):
+        #is called when at the top or bottom of the screen
         self.direction = 360-self.direction
+
+    def hitPaddle(self, paddle):
+        self.bounces += 1
+        #for now just calls the hitside function. It would be better if the direction depended on where the ball hits the paddle
+        self.hitSide()
         
     def update(self):
         #the behavior of the ball goes here
         #if the ball hits a paddle
+        #TODO fix this. Im not really sure how to detect when the ball hits the paddle if someone wants to figure it out?
+        #entities_list[0] is player 1's paddle and entities_list[2] is player 2's paddle
+        if(self.xPos <= entities_list[0].xPos and entities_list[0].yPos - self.yPos > 0 and self.yPosEnd - entities_list[0].yPosEnd):
+            hitPaddle(entities_list[0])
         #every time the ball bounces x number of times, increase speed
         #ball bounces off walls
         if (self.yPosEnd>=display_height or self.yPos <=0):
