@@ -23,10 +23,10 @@ class Entity(object):
         #xPosEnd is the right of the entity
         #yPosEnd is the bottom of the entity
         #xPosEnd and yPosEnd are untested I may have gotten these values incorrectly.
-        self.xPos = xPos
-        self.yPos = yPos
-        self.xPosEnd = xPos+pygameImage.get_rect().bottomright[0]
-        self.yPosEnd = yPos+pygameImage.get_rect().bottomleft[1]
+        self.xPos = float(xPos)
+        self.yPos = float(yPos)
+        self.xPosEnd = float(xPos+pygameImage.get_rect().bottomright[0])
+        self.yPosEnd = float(yPos+pygameImage.get_rect().bottomleft[1])
         self.pygameImage = pygameImage
     #update is the BEHAVIOR of the entity. It is implemented in the entities subclass. it will raise NotImplementedError if it is not implemented in a subclass of entity
     def update(self):
@@ -73,7 +73,7 @@ class PongGame(GameState):
         #Ball(xPos, yPos, startingSpeed)
         paddle1 =Paddle(40, 4, 5, 1, True)
         paddle2 =Paddle(display_width-50, 20, 10, 2, False)
-        ball = Ball(display_width/2, display_height/2, 1)
+        ball = Ball(display_width/2, display_height/2, 4)
         entities_list = [paddle1, paddle2, ball]
 
 
@@ -104,7 +104,7 @@ class Paddle(Entity):
                 if self.yPos>=0:
                     self.yPos-=self.speed
                     self.yPosEnd -= self.speed
-                
+
     def update(self):
         #TODO paddles shouldn't be able to go off screen
         if (self.isPlayer):
@@ -143,20 +143,23 @@ class Ball(Entity):
     def __init__(self, xPos, yPos, startingSpeed):
         ballImg=pygame.image.load('ball.png')
         Entity.__init__(self, xPos, yPos, ballImg)
+        self.startingSpeed = startingSpeed
         self.speed = startingSpeed
         #the number of times the ball has hit a paddle
         self.bounces=0
         self.direction = randint(0,360)
-
     
         
     #proceeds in the direction it's currently heading
     def go(self):
         #converts the direction from degrees to radians
         radians = (6.28*self.direction)/360
+        print ("Rad"+str(radians))
         #converts the radians and speed to x and y components
         xSpeed = self.speed*math.cos(radians)
+        print ("XSpeed"+str(xSpeed))
         ySpeed = self.speed*math.sin(radians)
+        print ("YSpeed"+str(ySpeed))
         #updates the balls position
         self.xPos += xSpeed
         self.xPosEnd+=xSpeed
@@ -166,6 +169,12 @@ class Ball(Entity):
     def hitSide(self):
         #is called when at the top or bottom of the screen
         self.direction = 360-self.direction
+
+
+    def hitEnd(self):
+        if self.xPos <= 0 or self.xPosEnd >= display_width:
+                self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
+                # score point to be added later #
 
     def hitPaddle(self, paddle):
         self.bounces += 1
@@ -180,6 +189,7 @@ class Ball(Entity):
         if(self.xPos <= entities_list[0].xPos and entities_list[0].yPos - self.yPos > 0 and self.yPosEnd - entities_list[0].yPosEnd):
             self.hitPaddle(entities_list[0])
         #every time the ball bounces x number of times, increase speed
+        self.hitEnd()
         #ball bounces off walls
         if (self.yPosEnd>=display_height or self.yPos <=0):
             self.hitSide()
