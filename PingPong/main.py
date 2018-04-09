@@ -148,28 +148,30 @@ class Ball(Entity):
         #the number of times the ball has hit a paddle
         self.bounces=0
         self.direction = randint(0,360)
+        radians = (6.28*self.direction)/360
+        self.xSpeed = self.speed*math.cos(radians)
+        self.ySpeed = self.speed*math.sin(radians)
     
         
     #proceeds in the direction it's currently heading
     def go(self):
-        #converts the direction from degrees to radians
-        radians = (6.28*self.direction)/360
-        print ("Rad"+str(radians))
-        #converts the radians and speed to x and y components
-        xSpeed = self.speed*math.cos(radians)
-        print ("XSpeed"+str(xSpeed))
-        ySpeed = self.speed*math.sin(radians)
-        print ("YSpeed"+str(ySpeed))
         #updates the balls position
-        self.xPos += xSpeed
-        self.xPosEnd+=xSpeed
-        self.yPos += ySpeed
-        self.yPosEnd +=ySpeed
-
+        self.xPos += self.xSpeed
+        self.xPosEnd+=self.xSpeed
+        self.yPos += self.ySpeed
+        self.yPosEnd +=self.ySpeed
+        
+    def calculateComponentSpeeds(self):
+        radians = (6.28*self.direction)/360
+        self.xSpeed = self.speed*math.cos(radians)
+        self.ySpeed = self.speed*math.sin(radians)
+    
     def hitSide(self):
         #is called when at the top or bottom of the screen
+        #changes direction
         self.direction = 360-self.direction
-
+        #recalculates the x and y speed
+        self.calculateComponentSpeeds()
 
     def hitEnd(self):
         if self.xPos <= 0 or self.xPosEnd >= display_width:
