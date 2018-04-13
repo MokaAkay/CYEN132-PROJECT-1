@@ -3,6 +3,7 @@ import pygame
 from random import randint
 import math
 
+pygame.init()
 display_width = 800
 display_height = 600
 pygame.init()
@@ -39,8 +40,8 @@ class Entity(object):
         
 class GameState(object):
     def __init__(self): # background, music):
-        pass
-        #delete current entities
+        global entities_list
+        entities_list = []
         #set background image
         #set music
 
@@ -52,8 +53,74 @@ class GameState(object):
         for entity in entities_list:
             entity.render()
 
+
 class MainMenu(GameState):
-    pass
+    def __init__(self):
+        GameState.__init__(self)
+        self.createMenus()
+        self.performButtonAction(self.startMenu)
+    #the create menus method creates the "blueprint" of the main menu like how Room Adventure created the blueprint for the mansion
+    #So far I only made one button that cannot be selected so it's not that interesting
+    def createMenus(self):
+        #creates all buttons
+        pongButtonImage = pygame.image.load("pong_unselected.png")
+        pongButton = Button(display_width / 2, display_height / 2, pongButtonImage)
+        #puts all buttons into arrays for each menu
+        self.startMenu = [pongButton]
+        self.pongPlayerSelectMenu = []
+
+        #set destinations for each button
+        self.startMenu[0].destination = self.pongPlayerSelectMenu
+
+    #the destination parameter will either be a PongGame or an array of buttons
+    #if it is a PongGame, the PongGame will start, if its an array of entities(buttons/titles for the menu), a submenu will appear
+    def performButtonAction(self, destination):
+        global game
+        if (issubclass(type(destination), GameState)):
+            game = destination
+        else:
+            self.clearEntities()
+            for entity in destination:
+                entities_list.append(entity)
+
+    #this makes it so the entities list is cleared so that new buttons can appear in submenus
+    def clearEntities(self):
+        global entities_list
+        entities_list = []
+
+#The buttons class allows navigation through the main menu
+#the destination for the button is set in the mainmenu class
+#there is currently no means of selecting a button, this will be implemented later
+class Button(Entity):
+    def __init__(self,xPos, yPos, image):
+        Entity.__init__(self,xPos,yPos,image)
+        self.isSelected = False
+        self.destination = None
+
+    def getsClicked(self):
+        self.isSelected = True
+
+    def changeToPong(self):
+        global game
+        game = PongGame()
+
+    @property
+    def destination(self):
+        return self._destination
+
+    @destination.setter
+    def destination(self, value):
+        self._destination = value
+
+    def update(self):
+        global game
+        if (self.isSelected):
+            if (self.destination != None):
+                game.performButtonAction(self.destination)
+
+
+
+
 
 
 
@@ -106,7 +173,6 @@ class Paddle(Entity):
                     self.yPosEnd -= self.speed
 
     def update(self):
-        #TODO paddles shouldn't be able to go off screen
         if (self.isPlayer):
             if (self.team == 1):
                 #Player 1 input goes here
