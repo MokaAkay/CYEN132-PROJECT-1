@@ -268,6 +268,7 @@ class Ball(Entity):
 # MAIN PART OF THE PROGRAM
 ######################################
 
+bg = pygame.image.load("background.png")
 game = PongGame()
 while not crashed:
     for event in pygame.event.get():
@@ -275,6 +276,7 @@ while not crashed:
             crashed = True
         print(event)
     gameDisplay.fill((0,0,0))
+    gameDisplay.blit(bg,(0,0))
     #updates all the entity behaviors
     game.updateEntities()
     #renders the entities to the screen
