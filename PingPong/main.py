@@ -138,7 +138,7 @@ class PongGame(GameState):
         
         #Paddle(xPos, yPos, speed, team, isPlayer)
         #Ball(xPos, yPos, startingSpeed)
-        paddle1 =Paddle(40, 4, 5, 1, True)
+        paddle1 =Paddle(40, 4, 5, 1, False)
         paddle2 =Paddle(display_width-50, 20, 10, 2, False)
         ball = Ball(display_width/2, display_height/2, 4)
         entities_list = [paddle1, paddle2, ball]
