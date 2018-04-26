@@ -12,6 +12,18 @@ pygame.display.set_caption('Pong!')
 clock = pygame.time.Clock()
 crashed = False
 
+display_width = 800
+display_height = 600
+ 
+black = (0,0,0)
+white = (255,255,255)
+red = (200,0,0)
+green = (0,200,0)
+
+bright_red = (255,0,0)
+bright_green = (0,255,0)
+
+
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
 
@@ -42,9 +54,94 @@ class GameState(object):
     def __init__(self): # background, music):
         global entities_list
         entities_list = []
-        #set background image
-        #set music
 
+        
+    def update(self):
+        raise NotImplementedError()
+
+
+class MainMenu(GameState):
+    def __init__(self):
+        GameState.__init__(self)
+        self.bg = pygame.image.load("intro_bg.png")
+        self.currentScreen = 0
+    def start_screen(self):
+        if (self.currentScreen == 0):
+            self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
+            self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
+        elif (self.currentScreen == 1):
+            self.button("Zero Player", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
+            self.button("One Player", 150, 300, 100, 50, green, bright_green, self.startPong, 1)
+            self.button("Two Player", 150, 400, 100, 50, green, bright_green, self.startPong, 2)
+            
+    def playerSelection(self):
+        self.currentScreen = 1
+
+    def startPong(self, *args):
+        #THIS IS WHERE I ENDED. WILL CONTINUE LATER
+        global game
+        game = PongGame(*args)
+
+    def button(self, msg, x, y, w, h, ic, ac, action = None, *args):
+        mouse = pygame.mouse.get_pos() #allows for mouse interaction 
+        click = pygame.mouse.get_pressed()
+        # this is for interaction with the mouse
+        # when the mouse hovers over a button it redraws the button with a different
+        # color to show that it is selected
+        if x+w > mouse[0] > x and y+h > mouse[1] > y:
+            pygame.draw.rect(gameDisplay, ac,(x,y,w,h))
+
+            if click[0] == 1 and action != None:
+                action()         
+        else:
+            pygame.draw.rect(gameDisplay, ic,(x,y,w,h))
+
+        smallText = pygame.font.SysFont("freesansbold.ttf",20)
+        textSurf, textRect = self.text_objects(msg, smallText)
+        textRect.center = ( (x+(w/2)), (y+(h/2)) )
+        gameDisplay.blit(textSurf, textRect)
+
+    def text_objects(self, text, font):
+        textSurface = font.render(text, True, black)
+        return textSurface, textSurface.get_rect()
+    
+    def start_pong(self):
+        global game
+        game = PongGame()
+    def quitgame(self):
+        print ("quit");
+        
+    def update(self):
+        gameDisplay.fill(white)
+        gameDisplay.blit(self.bg,(0,0))
+        self.start_screen()
+
+
+#PONG GAME IMPLEMENTATION
+class PongGame(GameState):
+    def __init__(self, numPlayers):
+        GameState.__init__(self)
+        self.bg = pygame.image.load("background.png")
+        #inherit from Gamestate class with music and background image
+        
+        global entities_list
+        #TODO ask if 1 player or 2 players
+        paddleOneIsPlayer=False
+        paddleTwoIsPlayer=False
+        if (numPlayers==1):
+            paddleOneIsPlayer = True
+        elif (numPlayers == 2):
+            paddleOneIsPlayer = True
+            paddleTwoIsPlayer = True
+        #adds all of the required entities to the entities list
+        #change "true" to "false" if you want the paddle to be an AI
+        
+        #Paddle(xPos, yPos, speed, team, isPlayer)
+        #Ball(xPos, yPos, startingSpeed)
+        paddle1 =Paddle(40, 4, 5, 1, paddleOneIsPlayer)
+        paddle2 =Paddle(display_width-50, 20, 10, 2, paddleTwoIsPlayer)
+        ball = Ball(display_width/2, display_height/2, 4)
+        entities_list = [paddle1, paddle2, ball]
     def updateEntities(self):
         for entity in entities_list:
             entity.update()
@@ -52,97 +149,13 @@ class GameState(object):
     def renderEntities(self):
         for entity in entities_list:
             entity.render()
-
-
-class MainMenu(GameState):
-    def __init__(self):
-        GameState.__init__(self)
-        self.createMenus()
-        self.performButtonAction(self.startMenu)
-    #the create menus method creates the "blueprint" of the main menu like how Room Adventure created the blueprint for the mansion
-    #So far I only made one button that cannot be selected so it's not that interesting
-    def createMenus(self):
-        #creates all buttons
-        pongButtonImage = pygame.image.load("pong_unselected.png")
-        pongButton = Button(display_width / 2, display_height / 2, pongButtonImage)
-        #puts all buttons into arrays for each menu
-        self.startMenu = [pongButton]
-        self.pongPlayerSelectMenu = []
-
-        #set destinations for each button
-        self.startMenu[0].destination = self.pongPlayerSelectMenu
-
-    #the destination parameter will either be a PongGame or an array of buttons
-    #if it is a PongGame, the PongGame will start, if its an array of entities(buttons/titles for the menu), a submenu will appear
-    def performButtonAction(self, destination):
-        global game
-        if (issubclass(type(destination), GameState)):
-            game = destination
-        else:
-            self.clearEntities()
-            for entity in destination:
-                entities_list.append(entity)
-
-    #this makes it so the entities list is cleared so that new buttons can appear in submenus
-    def clearEntities(self):
-        global entities_list
-        entities_list = []
-
-#The buttons class allows navigation through the main menu
-#the destination for the button is set in the mainmenu class
-#there is currently no means of selecting a button, this will be implemented later
-class Button(Entity):
-    def __init__(self,xPos, yPos, image):
-        Entity.__init__(self,xPos,yPos,image)
-        self.isSelected = False
-        self.destination = None
-
-    def getsClicked(self):
-        self.isSelected = True
-
-    def changeToPong(self):
-        global game
-        game = PongGame()
-
-    @property
-    def destination(self):
-        return self._destination
-
-    @destination.setter
-    def destination(self, value):
-        self._destination = value
-
+        
     def update(self):
-        global game
-        if (self.isSelected):
-            if (self.destination != None):
-                game.performButtonAction(self.destination)
-
-
-
-
-
-
-
-#PONG GAME IMPLEMENTATION
-class PongGame(GameState):
-    def __init__(self):
-        GameState.__init__(self)
-        #inherit from Gamestate class with music and background image
+        gameDisplay.fill(white)
+        gameDisplay.blit(self.bg,(0,0))
+        self.updateEntities()
+        self.renderEntities()
         
-        global entities_list
-        #TODO ask if 1 player or 2 players
-
-        #adds all of the required entities to the entities list
-        #change "true" to "false" if you want the paddle to be an AI
-        
-        #Paddle(xPos, yPos, speed, team, isPlayer)
-        #Ball(xPos, yPos, startingSpeed)
-        paddle1 =Paddle(40, 4, 5, 1, False)
-        paddle2 =Paddle(display_width-50, 20, 10, 2, False)
-        ball = Ball(display_width/2, display_height/2, 4)
-        entities_list = [paddle1, paddle2, ball]
-
 
 #Param xPos, the initial x position of the paddle
 #Param yPos, the initial y position of the paddle
@@ -268,19 +281,14 @@ class Ball(Entity):
 # MAIN PART OF THE PROGRAM
 ######################################
 
-bg = pygame.image.load("background.png")
-game = PongGame()
+game = MainMenu()
 while not crashed:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             crashed = True
-        print(event)
-    gameDisplay.fill((0,0,0))
-    gameDisplay.blit(bg,(0,0))
+        #print(event)
     #updates all the entity behaviors
-    game.updateEntities()
-    #renders the entities to the screen
-    game.renderEntities()
+    game.update()
     pygame.display.update()
     clock.tick(60)
 pygame.quit
