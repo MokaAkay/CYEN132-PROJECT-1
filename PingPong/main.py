@@ -122,6 +122,8 @@ class PongGame(GameState):
     def __init__(self, numPlayers):
         GameState.__init__(self)
         self.bg = pygame.image.load("background.png")
+        self.isPaused = False
+        self.pauseHandler = False
         #inherit from Gamestate class with music and background image
         
         global entities_list
@@ -151,10 +153,20 @@ class PongGame(GameState):
             entity.render()
         
     def update(self):
-        gameDisplay.fill(white)
-        gameDisplay.blit(self.bg,(0,0))
-        self.updateEntities()
-        self.renderEntities()
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+            if (self.pauseHandler == False):
+                self.pauseHandler = True
+                if self.isPaused:
+                    self.isPaused = False
+                else:
+                    self.isPaused = True
+        else:
+            self.pauseHandler = False
+        if (not self.isPaused):
+            gameDisplay.fill(white)
+            gameDisplay.blit(self.bg,(0,0))
+            self.updateEntities()
+            self.renderEntities()
         
 
 #Param xPos, the initial x position of the paddle
