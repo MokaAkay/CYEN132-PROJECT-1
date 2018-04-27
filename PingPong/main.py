@@ -77,10 +77,10 @@ class MainMenu(GameState):
     def playerSelection(self):
         self.currentScreen = 1
 
-    def startPong(self, *args):
+    def startPong(self, args):
         #THIS IS WHERE I ENDED. WILL CONTINUE LATER
         global game
-        game = PongGame(*args)
+        game = PongGame(args)
 
     def button(self, msg, x, y, w, h, ic, ac, action = None, *args):
         mouse = pygame.mouse.get_pos() #allows for mouse interaction 
@@ -92,7 +92,7 @@ class MainMenu(GameState):
             pygame.draw.rect(gameDisplay, ac,(x,y,w,h))
 
             if click[0] == 1 and action != None:
-                action()         
+                action(*args)         
         else:
             pygame.draw.rect(gameDisplay, ic,(x,y,w,h))
 
