@@ -23,6 +23,10 @@ green = (0,200,0)
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 
+#dictionaries for the 2 sets of LEDs
+P1LED = {17 : 1 , 16 : 2, 13 : 3, 12 : 4, 6 : 5} 
+P2LED = {18 : 1, 19 : 2, 20 : 3, 21 : 4, 22 : 5}
+
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
