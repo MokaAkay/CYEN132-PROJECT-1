@@ -74,9 +74,9 @@ class MainMenu(GameState):
             self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
             self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Zero Player", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
-            self.button("One Player", 150, 300, 100, 50, green, bright_green, self.startPong, 1)
-            self.button("Two Player", 150, 400, 100, 50, green, bright_green, self.startPong, 2)
+            self.button("Only AI", 150, 400, 100, 50, green, bright_green, self.startPong, 0)
+            self.button("One Player", 325, 400, 100, 50, green, bright_green, self.startPong, 1)
+            self.button("Two Player", 500, 400, 100, 50, green, bright_green, self.startPong, 2)
             
     def playerSelection(self):
         self.currentScreen = 1
