@@ -257,18 +257,30 @@ class Ball(Entity):
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
                 # score point to be added later #
 
+    def hitPaddleDefault(self):
+        self.direction = 180-self.direction
+        self.calculateComponentSpeeds()
+
     def hitPaddle(self, paddle):
         self.bounces += 1
         #for now just calls the hitside function. It would be better if the direction depended on where the ball hits the paddle
-        self.hitSide()
+        self.hitPaddleDefault()
+
+        if (self.bounces % 5 == 0):
+            self.speed +=2
+
+        self.calculateComponentSpeeds()
         
     def update(self):
         #the behavior of the ball goes here
         #if the ball hits a paddle
-        #TODO fix this. Im not really sure how to detect when the ball hits the paddle if someone wants to figure it out?
-        #entities_list[0] is player 1's paddle and entities_list[2] is player 2's paddle
-        if(self.xPos <= entities_list[0].xPos and entities_list[0].yPos - self.yPos > 0 and self.yPosEnd - entities_list[0].yPosEnd):
+        #entities_list[0] is player 1's paddle and entities_list[1] is player 2's paddle
+        if(self.xPos <= entities_list[0].xPosEnd and entities_list[0].yPos <= self.yPos and self.yPosEnd <= entities_list[0].yPosEnd):
             self.hitPaddle(entities_list[0])
+
+        if(self.xPosEnd >= entities_list[1].xPos and entities_list[1].yPos <= self.yPos and self.yPosEnd <= entities_list[1].yPosEnd):
+            self.hitPaddle(entities_list[1])
+
         #every time the ball bounces x number of times, increase speed
         self.hitEnd()
         #ball bounces off walls
