@@ -23,10 +23,6 @@ green = (0,200,0)
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 
-#dictionaries for the 2 sets of LEDs
-P1LED = {17 : 1 , 16 : 2, 13 : 3, 12 : 4, 6 : 5} 
-P2LED = {18 : 1, 19 : 2, 20 : 3, 21 : 4, 22 : 5}
-
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
@@ -74,12 +70,28 @@ class MainMenu(GameState):
             self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
             self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Only AI", 150, 400, 100, 50, green, bright_green, self.startPong, 0)
-            self.button("One Player", 325, 400, 100, 50, green, bright_green, self.startPong, 1)
-            self.button("Two Player", 500, 400, 100, 50, green, bright_green, self.startPong, 2)
-            
+            self.button("Zero Player", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
+            self.button("One Player", 150, 300, 100, 50, green, bright_green, self.startPong, 1)
+            self.button("Two Player", 150, 400, 100, 50, green, bright_green, self.startPong,2)
+
+    def end_screen(self):
+        if (self.currentScreen == 2):
+            self.bg = pygame.image.load("win.png")
+            self.button("Main Menu", 150,450,100,50,red,bright_red, self.MainMenu)
+            self.button("Quit", 550, 450, 100, 50, red, bright_red, self.quitgame)
+        elif (self.currentScreen == 3):
+            self.bg = pygame.image.load("lose.png")
+            self.button("Main Menu", 150,450,100,50,red,bright_red, self.MainMenu)
+            self.button("Quit", 550, 450, 100, 50, red, bright_red, self.quitgame)
+
     def playerSelection(self):
         self.currentScreen = 1
+
+    def playerWins(self):                
+        self.currentScreen = 2
+
+    def playerLoses(self):
+        self.currentScreen = 3
 
     def startPong(self, args):
         #THIS IS WHERE I ENDED. WILL CONTINUE LATER
@@ -112,6 +124,7 @@ class MainMenu(GameState):
     def start_pong(self):
         global game
         game = PongGame()
+        
     def quitgame(self):
         print ("quit");
         
@@ -147,7 +160,10 @@ class PongGame(GameState):
         paddle1 =Paddle(40, 4, 5, 1, paddleOneIsPlayer)
         paddle2 =Paddle(display_width-50, 20, 10, 2, paddleTwoIsPlayer)
         ball = Ball(display_width/2, display_height/2, 4)
-        entities_list = [paddle1, paddle2, ball]
+        heart1 =Heart(60, 5, 5)
+        heart2 =Heart(display_width-120, 5, 5)
+        entities_list = [paddle1, paddle2, ball, heart1, heart2]
+
     def updateEntities(self):
         for entity in entities_list:
             entity.update()
@@ -161,7 +177,7 @@ class PongGame(GameState):
             if (self.pauseHandler == False):
                 self.pauseHandler = True
                 if self.isPaused:
-                    self.isPaused = False
+                    selfisPaused = False
                 else:
                     self.isPaused = True
         else:
@@ -232,6 +248,15 @@ class Paddle(Entity):
         if (not self.isPlayer):
             self.chaseBall()
 
+class Heart(Entity):
+    def __init__(self, xPos, yPos, lives):
+        heartImg = pygame.image.load('heart.png')
+        Entity.__init__(self, xPos, yPos, heartImg)
+        self.lives = 5
+
+    def update(self):
+        pass
+
         
 
 class Ball(Entity):
@@ -270,6 +295,8 @@ class Ball(Entity):
 
     def hitEnd(self):
         if self.xPos <= 0 or self.xPosEnd >= display_width:
+            if (self.xPos <= 0):
+                
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
                 # score point to be added later #
 
