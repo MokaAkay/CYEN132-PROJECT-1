@@ -23,6 +23,10 @@ green = (0,200,0)
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 
+#dictionaries for the 2 sets of LEDs
+P1LED = {17 : 1, 16 : 2, 13: 3, 12 : 4, 6 : 5}
+P2LED = {18 : 1, 19 : 2, 20 : 3, 21 : 4, 22 : 5}
+
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
@@ -70,7 +74,7 @@ class MainMenu(GameState):
             self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
             self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Zero Player", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
+            self.button("Only AI", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
             self.button("One Player", 150, 300, 100, 50, green, bright_green, self.startPong, 1)
             self.button("Two Player", 150, 400, 100, 50, green, bright_green, self.startPong,2)
 
@@ -177,7 +181,7 @@ class PongGame(GameState):
             if (self.pauseHandler == False):
                 self.pauseHandler = True
                 if self.isPaused:
-                    selfisPaused = False
+                    self.isPaused = False
                 else:
                     self.isPaused = True
         else:
@@ -295,8 +299,6 @@ class Ball(Entity):
 
     def hitEnd(self):
         if self.xPos <= 0 or self.xPosEnd >= display_width:
-            if (self.xPos <= 0):
-                
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
                 # score point to be added later #
 
