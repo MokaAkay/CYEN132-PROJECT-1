@@ -74,9 +74,9 @@ class MainMenu(GameState):
             self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
             self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Only AI", 150, 200, 100, 50, green, bright_green, self.startPong, 0)
-            self.button("One Player", 150, 300, 100, 50, green, bright_green, self.startPong, 1)
-            self.button("Two Player", 150, 400, 100, 50, green, bright_green, self.startPong,2)
+            self.button("Only AI", 200, 400, 100, 50, green, bright_green, self.startPong, 0)
+            self.button("One Player", 350, 400, 100, 50, green, bright_green, self.startPong, 1)
+            self.button("Two Player", 500, 400, 100, 50, green, bright_green, self.startPong,2)
 
     def end_screen(self):
         if (self.currentScreen == 2):
@@ -161,8 +161,8 @@ class PongGame(GameState):
         
         #Paddle(xPos, yPos, speed, team, isPlayer)
         #Ball(xPos, yPos, startingSpeed)
-        paddle1 =Paddle(40, 4, 5, 1, paddleOneIsPlayer)
-        paddle2 =Paddle(display_width-50, 20, 10, 2, paddleTwoIsPlayer)
+        paddle1 =Paddle(40, 4, 5, 1, paddleOneIsPlayer, pygame.image.load("paddle1.png"))
+        paddle2 =Paddle(display_width-50, 20, 10, 2, paddleTwoIsPlayer,pygame.image.load("paddle2.png"))
         ball = Ball(display_width/2, display_height/2, 4)
         heart1 =Heart(60, 5, 5)
         heart2 =Heart(display_width-120, 5, 5)
@@ -199,8 +199,8 @@ class PongGame(GameState):
 #Param isPlayer if it is a player, will allow player input
 # if not, AI will take control of the paddle
 class Paddle(Entity):
-    def __init__(self, xPos, yPos, speed, team, isPlayer):
-        paddleImg=pygame.image.load("paddle.png")
+    def __init__(self, xPos, yPos, speed, team, isPlayer, img):
+        paddleImg = img
         Entity.__init__(self, xPos, yPos, paddleImg)
         self.team = team
         self.isPlayer = isPlayer
