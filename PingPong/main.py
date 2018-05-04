@@ -1,4 +1,5 @@
 
+import RPi.GIPO as GPIO
 import pygame
 from random import randint
 import math
@@ -23,10 +24,20 @@ green = (0,200,0)
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 
+#Pins for buttons
+pause = 27
+
 #dictionaries for the 2 sets of LEDs
 P1LED = {17 : 1, 16 : 2, 13: 3, 12 : 4, 6 : 5}
 P2LED = {18 : 1, 19 : 2, 20 : 3, 21 : 4, 22 : 5}
 
+#GPIO button setup
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(pause, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+#GPIO led setup
+GPIO.setup(P1LED, GPIO.OUT)
+GPIO.setup(P2LED, GPIO.OUT)
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
@@ -177,7 +188,7 @@ class PongGame(GameState):
             entity.render()
         
     def update(self):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+        if event.type == pygame.KEYDOWN and (event.key == pygame.K_p or :
             if (self.pauseHandler == False):
                 self.pauseHandler = True
                 if self.isPaused:
