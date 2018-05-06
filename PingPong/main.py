@@ -1,7 +1,7 @@
 
 #import RPi.GIPO as GPIO
 import pygame
-from random import randint
+import random
 import math
 import time
 
@@ -329,7 +329,8 @@ class Ball(Entity):
         self.speed = startingSpeed
         #the number of times the ball has hit a paddle
         self.bounces=0
-        self.direction = randint(0,360)
+        numbers = list(range(0,60)) + list(range(120,250)) + list(range(310,360))
+        self.direction = random.choice(numbers)
         radians = (6.28*self.direction)/360
         self.xSpeed = self.speed*math.cos(radians)
         self.ySpeed = self.speed*math.sin(radians)
