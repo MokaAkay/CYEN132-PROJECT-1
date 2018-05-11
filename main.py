@@ -378,10 +378,12 @@ class Ball(Entity):
         self.calculateComponentSpeeds()
 
     def hitEnd(self):
-        if self.xPos <= 0 or self.xPosEnd >= display_width:
+        if self.xPos <= 0:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
-                # score point to be added later #
-
+                
+        if self.xPosEnd >= display_width:
+                self.__init__(display_width/2, display_height/2,self.startingSpeed)
+                
     def hitPaddleDefault(self):
         self.direction = 180-self.direction
         self.calculateComponentSpeeds()
@@ -403,10 +405,10 @@ class Ball(Entity):
         #the behavior of the ball goes here
         #if the ball hits a paddle
         #entities_list[0] is player 1's paddle and entities_list[1] is player 2's paddle
-        if(self.xPos <= entities_list[0].xPosEnd and entities_list[0].yPos <= self.yPos and self.yPosEnd <= entities_list[0].yPosEnd):
+        if(self.xPos <= entities_list[0].xPosEnd and self.xPos > entities_list[0].xPos and entities_list[0].yPos <= self.yPos and self.yPosEnd <= entities_list[0].yPosEnd):
             self.hitPaddle(entities_list[0])
 
-        if(self.xPosEnd >= entities_list[1].xPos and entities_list[1].yPos <= self.yPos and self.yPosEnd <= entities_list[1].yPosEnd):
+        if(self.xPosEnd >= entities_list[1].xPos and self.xPosEnd < entities_list[1].xPosEnd and entities_list[1].yPos <= self.yPos and self.yPosEnd <= entities_list[1].yPosEnd):
             self.hitPaddle(entities_list[1])
 
         #every time the ball bounces x number of times, increase speed
