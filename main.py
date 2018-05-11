@@ -242,28 +242,50 @@ class Paddle(Entity):
                 #Player 1 input goes here
                 #This stuff is for now, later we will use GPIO input instead with switches
                 if event.type == pygame.KEYDOWN:
-                    if (event.key == pygame.K_s or GPIO.input(p1[0]) == True):
+                    if (event.key == pygame.K_s):
                         if self.yPosEnd<display_height:
                             self.yPos +=self.speed
                             self.yPosEnd += self.speed
-                    elif (event.key == pygame.K_w or GPIO.input(p1[1]) == True):
+                    elif (event.key == pygame.K_w):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
+                if (GPIO.input(p1[0]) == True):
+                    if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                if (GPIO.input(p1[1]) == True):
+                    if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
+                    
+                    
             if (self.team == 2):
                 #Player 1 input goes here
                 #if up is held, decrease the y position by speed
                 #if down is held, decrease the y position by speed
                 if event.type == pygame.KEYDOWN:
-                    if (event.key == pygame.K_DOWN or GPIO.input(p2[0]) == True):
+                    if (event.key == pygame.K_DOWN:
                         if self.yPosEnd<display_height:
                             self.yPos +=self.speed
                             self.yPosEnd += self.speed
-                    elif (event.key == pygame.K_UP or GPIO.input(p2[1]) == True):
+                    elif (event.key == pygame.K_UP):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
-        #if the paddle is not a player(human) it will take control of itself
+                if (GPIO.input(p2[0]) == True):
+                        if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                if (GPIO.input(p2[1]) == True):
+                        if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
+                        
+                        
+                    
+
+#if the paddle is not a player(human) it will take control of itself
         if (not self.isPlayer):
             self.chaseBall()
 
