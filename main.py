@@ -1,20 +1,19 @@
 
 import RPi.GPIO as GPIO
 import pygame
-from random import randint
+import random
 import math
+import time
 
 pygame.init()
 display_width = 800
-display_height = 500
+display_height = 475
 pygame.init()
 gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Pong!')
 clock = pygame.time.Clock()
 crashed = False
 
-display_width = 800
-display_height = 600
  
 black = (0,0,0)
 white = (255,255,255)
@@ -38,6 +37,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(pause, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(p1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(p2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 
 #GPIO led setup
 GPIO.setup(P1LED, GPIO.OUT)
@@ -86,12 +86,17 @@ class MainMenu(GameState):
         self.currentScreen = 0
     def start_screen(self):
         if (self.currentScreen == 0):
-            self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
-            self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
+            self.button("Start",150,350,100,50,green,bright_green,self.playerSelection)
+            self.button("Exit",550,350,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Only AI", 200, 400, 100, 50, green, bright_green, self.startPong, 0)
-            self.button("One Player", 350, 400, 100, 50, green, bright_green, self.startPong, 1)
-            self.button("Two Player", 500, 400, 100, 50, green, bright_green, self.startPong,2)
+            self.button("Only AI", 200, 300, 100, 50, green, bright_green, self.setPlayerCount, 0)
+            self.button("One Player", 350, 300, 100, 50, green, bright_green, self.setPlayerCount, 1)
+            self.button("Two Player", 500, 300, 100, 50, green, bright_green, self.setPlayerCount, 2)
+        elif (self.currentScreen == 4):
+            self.label("Select Paddle Speed", 345, 350, 20)
+            self.button("Slow", 200, 400, 100, 50, green, bright_green, self.setPaddleSpeed, "slow")
+            self.button("Average", 350, 400, 100, 50, green, bright_green, self.setPaddleSpeed, "average")
+            self.button("Fast", 500, 400, 100, 50, green, bright_green, self.setPaddleSpeed, "fast")
 
     def end_screen(self):
         if (self.currentScreen == 2):
@@ -104,6 +109,7 @@ class MainMenu(GameState):
             self.button("Quit", 550, 450, 100, 50, red, bright_red, self.quitgame)
 
     def playerSelection(self):
+        self.gameSelection = PongGame()
         self.currentScreen = 1
 
     def playerWins(self):                
@@ -112,11 +118,35 @@ class MainMenu(GameState):
     def playerLoses(self):
         self.currentScreen = 3
 
-    def startPong(self, args):
-        #THIS IS WHERE I ENDED. WILL CONTINUE LATER
+    def startPong(self):
         global game
-        game = PongGame(args)
+        game = self.gameSelection
 
+    #This sets the number of players in the gameSelection variable(which at this point would be Pong object)
+    def setPlayerCount(self, args):
+        time.sleep(0.25)
+        if (args == 0):
+            self.gameSelection.setPaddleOneIsPlayer(False)
+            self.gameSelection.setPaddleTwoIsPlayer(False)
+        elif (args == 1):
+            self.gameSelection.setPaddleOneIsPlayer(True)
+            self.gameSelection.setPaddleTwoIsPlayer(False)
+        else:
+            self.gameSelection.setPaddleOneIsPlayer(True)
+            self.gameSelection.setPaddleTwoIsPlayer(True)
+        self.currentScreen = 4
+
+    #This sets the number of players in the gameSelection variable(which at this point would be a Pong object)
+    #also starts the pong game
+    def setPaddleSpeed(self, args):
+        if (args == "slow"):
+            self.gameSelection.setPaddleSpeeds(5)
+        elif (args == "average"):
+            self.gameSelection.setPaddleSpeeds(10)
+        else:
+            self.gameSelection.setPaddleSpeeds(15)
+        self.startPong()
+        
     def button(self, msg, x, y, w, h, ic, ac, action = None, *args):
         mouse = pygame.mouse.get_pos() #allows for mouse interaction 
         click = pygame.mouse.get_pressed()
@@ -135,6 +165,12 @@ class MainMenu(GameState):
         textSurf, textRect = self.text_objects(msg, smallText)
         textRect.center = ( (x+(w/2)), (y+(h/2)) )
         gameDisplay.blit(textSurf, textRect)
+
+    def label(self, msg, x, y, size):
+        myfont = pygame.font.SysFont("freesansbold.ttf", size)
+        # render text
+        label = myfont.render(msg, 1, (0,0,0))
+        gameDisplay.blit(label, (x, y))
 
     def text_objects(self, text, font):
         textSurface = font.render(text, True, black)
@@ -155,7 +191,7 @@ class MainMenu(GameState):
 
 #PONG GAME IMPLEMENTATION
 class PongGame(GameState):
-    def __init__(self, numPlayers):
+    def __init__(self):
         GameState.__init__(self)
         self.bg = pygame.image.load("background.png")
         self.isPaused = False
@@ -163,25 +199,31 @@ class PongGame(GameState):
         #inherit from Gamestate class with music and background image
         
         global entities_list
-        #TODO ask if 1 player or 2 players
-        paddleOneIsPlayer=False
-        paddleTwoIsPlayer=False
-        if (numPlayers==1):
-            paddleOneIsPlayer = True
-        elif (numPlayers == 2):
-            paddleOneIsPlayer = True
-            paddleTwoIsPlayer = True
+
         #adds all of the required entities to the entities list
         #change "true" to "false" if you want the paddle to be an AI
         
         #Paddle(xPos, yPos, speed, team, isPlayer)
         #Ball(xPos, yPos, startingSpeed)
-        paddle1 =Paddle(40, 4, 5, 1, paddleOneIsPlayer, pygame.image.load("paddle1.png"))
-        paddle2 =Paddle(display_width-50, 20, 10, 2, paddleTwoIsPlayer,pygame.image.load("paddle2.png"))
+        paddle1 =Paddle(40, 4, 1, pygame.image.load("paddle1.png"))
+        paddle2 =Paddle(display_width-50, 20, 2, pygame.image.load("paddle2.png"))
         ball = Ball(display_width/2, display_height/2, 4)
         heart1 =Heart(60, 5, 5)
         heart2 =Heart(display_width-120, 5, 5)
         entities_list = [paddle1, paddle2, ball, heart1, heart2]
+
+    def setPaddleSpeeds(self, speed):
+        entities_list[0].setSpeed(speed)
+        entities_list[1].setSpeed(speed)
+
+    def setBallSpeed(self, speed):
+        entities_list[3].setSpeed(speed)
+
+    def setPaddleOneIsPlayer(self, isPlayer):
+        entities_list[0].setIsPlayer(isPlayer)
+        
+    def setPaddleTwoIsPlayer(self, isPlayer):
+        entities_list[1].setIsPlayer(isPlayer)
 
     def updateEntities(self):
         for entity in entities_list:
@@ -192,7 +234,7 @@ class PongGame(GameState):
             entity.render()
         
     def update(self):
-        if ((event.type == pygame.KEYDOWN and event.key == pygame.K_p) or GPIO.input(pause) == True) :
+        if event.type == pygame.KEYDOWN and (event.key == pygame.K_p):
             if (self.pauseHandler == False):
                 self.pauseHandler = True
                 if self.isPaused:
@@ -214,12 +256,12 @@ class PongGame(GameState):
 #Param isPlayer if it is a player, will allow player input
 # if not, AI will take control of the paddle
 class Paddle(Entity):
-    def __init__(self, xPos, yPos, speed, team, isPlayer, img):
+    def __init__(self, xPos, yPos, team, img):
         paddleImg = img
         Entity.__init__(self, xPos, yPos, paddleImg)
         self.team = team
-        self.isPlayer = isPlayer
-        self.speed = speed
+        self.isPlayer = False
+        self.speed = 5
 
     #in this method the paddle will try to chase the ball at it's speed. It does this by comparing the location of the ball to the location of the paddle
     def chaseBall(self):
@@ -236,6 +278,10 @@ class Paddle(Entity):
                     self.yPos-=self.speed
                     self.yPosEnd -= self.speed
 
+    def setSpeed(self, value):
+        self.speed = value
+    def setIsPlayer(self, isPlayer):
+        self.isPlayer = isPlayer
     def update(self):
         if (self.isPlayer):
             if (self.team == 1):
@@ -265,7 +311,7 @@ class Paddle(Entity):
                 #if up is held, decrease the y position by speed
                 #if down is held, decrease the y position by speed
                 if event.type == pygame.KEYDOWN:
-                    if (event.key == pygame.K_DOWN:
+                    if (event.key == pygame.K_DOWN):
                         if self.yPosEnd<display_height:
                             self.yPos +=self.speed
                             self.yPosEnd += self.speed
@@ -281,11 +327,7 @@ class Paddle(Entity):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
-                        
-                        
-                    
-
-#if the paddle is not a player(human) it will take control of itself
+        #if the paddle is not a player(human) it will take control of itself
         if (not self.isPlayer):
             self.chaseBall()
 
@@ -298,9 +340,6 @@ class Heart(Entity):
     def update(self):
         pass
 
-    def text_objects(self, text, font):
-        textSurface = font.render(text, True, black)
-        return textSurface, textSurface.get_rect()
         
 
 class Ball(Entity):
@@ -311,7 +350,8 @@ class Ball(Entity):
         self.speed = startingSpeed
         #the number of times the ball has hit a paddle
         self.bounces=0
-        self.direction = randint(0,360)
+        numbers = list(range(0,60)) + list(range(120,250)) + list(range(310,360))
+        self.direction = random.choice(numbers)
         radians = (6.28*self.direction)/360
         self.xSpeed = self.speed*math.cos(radians)
         self.ySpeed = self.speed*math.sin(radians)
@@ -355,6 +395,9 @@ class Ball(Entity):
             self.speed +=2
 
         self.calculateComponentSpeeds()
+
+    def setSpeed(self, speed):
+        self.speed = speed
         
     def update(self):
         #the behavior of the ball goes here
