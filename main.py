@@ -46,6 +46,12 @@ GPIO.setup(P2LED, GPIO.OUT)
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
 
+global p1lives
+global p2lives
+
+p1lives = 5
+p2lives = 5
+
 
 #THE ENTITY CLASS IS DONE. DON'T CHANGE THIS (unless you want to try to implement animations for each of the sprites.)
 class Entity(object):
@@ -208,9 +214,7 @@ class PongGame(GameState):
         paddle1 =Paddle(40, 4, 1, pygame.image.load("paddle1.png"))
         paddle2 =Paddle(display_width-50, 20, 2, pygame.image.load("paddle2.png"))
         ball = Ball(display_width/2, display_height/2, 4)
-        heart1 =Heart(60, 5, 5)
-        heart2 =Heart(display_width-120, 5, 5)
-        entities_list = [paddle1, paddle2, ball, heart1, heart2]
+        entities_list = [paddle1, paddle2, ball]
 
     def setPaddleSpeeds(self, speed):
         entities_list[0].setSpeed(speed)
@@ -248,6 +252,8 @@ class PongGame(GameState):
             gameDisplay.blit(self.bg,(0,0))
             self.updateEntities()
             self.renderEntities()
+            entities_list[0].scoring()
+            entities_list[1].scoring()
         
 
 #Param xPos, the initial x position of the paddle
@@ -262,6 +268,8 @@ class Paddle(Entity):
         self.team = team
         self.isPlayer = False
         self.speed = 5
+        self.lives = 5
+        self.scoreFont = pygame.font.Font('freesansbold.ttf',50)
 
     #in this method the paddle will try to chase the ball at it's speed. It does this by comparing the location of the ball to the location of the paddle
     def chaseBall(self):
@@ -282,6 +290,13 @@ class Paddle(Entity):
         self.speed = value
     def setIsPlayer(self, isPlayer):
         self.isPlayer = isPlayer
+
+    def scoring(self):
+        scoreDraw = self.scoreFont.render(str(self.lives),1,white)
+        if (self.team == 1):
+            gameDisplay.blit(scoreDraw, (80,5))
+        if (self.team == 2):
+            gameDisplay.blit(scoreDraw, (display_width-100,5))
     def update(self):
         if (self.isPlayer):
             if (self.team == 1):
@@ -331,16 +346,6 @@ class Paddle(Entity):
         if (not self.isPlayer):
             self.chaseBall()
 
-class Heart(Entity):
-    def __init__(self, xPos, yPos, lives):
-        heartImg = pygame.image.load('heart.png')
-        Entity.__init__(self, xPos, yPos, heartImg)
-        self.lives = 5
-
-    def update(self):
-        pass
-
-        
 
 class Ball(Entity):
     def __init__(self, xPos, yPos, startingSpeed):
@@ -380,10 +385,13 @@ class Ball(Entity):
     def hitEnd(self):
         if self.xPos <= 0:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
+                entities_list[0].lives -= 1 #decrement p1 lives by 1
                 
         if self.xPosEnd >= display_width:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)
-                
+                entities_list[1].lives -= 1 #decrement p2 lives by 1
+        
+
     def hitPaddleDefault(self):
         self.direction = 180-self.direction
         self.calculateComponentSpeeds()
@@ -405,10 +413,10 @@ class Ball(Entity):
         #the behavior of the ball goes here
         #if the ball hits a paddle
         #entities_list[0] is player 1's paddle and entities_list[1] is player 2's paddle
-        if(self.xPos <= entities_list[0].xPosEnd and self.xPos > entities_list[0].xPos and entities_list[0].yPos <= self.yPos and self.yPosEnd <= entities_list[0].yPosEnd):
+        if(self.xPos <= entities_list[0].xPosEnd and entities_list[0].yPos <= self.yPos and self.yPosEnd <= entities_list[0].yPosEnd):
             self.hitPaddle(entities_list[0])
 
-        if(self.xPosEnd >= entities_list[1].xPos and self.xPosEnd < entities_list[1].xPosEnd and entities_list[1].yPos <= self.yPos and self.yPosEnd <= entities_list[1].yPosEnd):
+        if(self.xPosEnd >= entities_list[1].xPos and entities_list[1].yPos <= self.yPos and self.yPosEnd <= entities_list[1].yPosEnd):
             self.hitPaddle(entities_list[1])
 
         #every time the ball bounces x number of times, increase speed
