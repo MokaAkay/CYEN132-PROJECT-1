@@ -1,5 +1,5 @@
 
-#import RPi.GIPO as GPIO
+#import RPi.GPIO as GPIO
 import pygame
 import random
 import math
@@ -7,15 +7,13 @@ import time
 
 pygame.init()
 display_width = 800
-display_height = 600
+display_height = 475
 pygame.init()
 gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Pong!')
 clock = pygame.time.Clock()
 crashed = False
 
-display_width = 800
-display_height = 600
  
 black = (0,0,0)
 white = (255,255,255)
@@ -27,21 +25,31 @@ bright_green = (0,255,0)
 
 #Pins for buttons
 pause = 27
+p1 = [25,26]
+p2 = [23,24]
 
 #dictionaries for the 2 sets of LEDs
-P1LED = {17 : 1, 16 : 2, 13: 3, 12 : 4, 6 : 5}
-P2LED = {18 : 1, 19 : 2, 20 : 3, 21 : 4, 22 : 5}
+P1LED = [17 , 16 , 13, 12, 6]
+P2LED = [18, 19, 20, 21, 22]
 
-#GPIO button setup
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setup(pause, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO button setup
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(pause, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(p1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(p2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-#GPIO led setup
-#GPIO.setup(P1LED, GPIO.OUT)
-#GPIO.setup(P2LED, GPIO.OUT)
+GPIO led setup
+GPIO.setup(P1LED, GPIO.OUT)
+GPIO.setup(P2LED, GPIO.OUT)
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
+
+global p1lives
+global p2lives
+
+p1lives = 5
+p2lives = 5
 
 
 #THE ENTITY CLASS IS DONE. DON'T CHANGE THIS (unless you want to try to implement animations for each of the sprites.)
@@ -76,6 +84,7 @@ class GameState(object):
         raise NotImplementedError()
 
 
+
 class MainMenu(GameState):
     def __init__(self):
         GameState.__init__(self)
@@ -83,12 +92,12 @@ class MainMenu(GameState):
         self.currentScreen = 0
     def start_screen(self):
         if (self.currentScreen == 0):
-            self.button("Start",150,450,100,50,green,bright_green,self.playerSelection)
-            self.button("Exit",550,450,100,50,red,bright_red,self.quitgame)
+            self.button("Start",150,350,100,50,green,bright_green,self.playerSelection)
+            self.button("Exit",550,350,100,50,red,bright_red,self.quitgame)
         elif (self.currentScreen == 1):
-            self.button("Only AI", 200, 400, 100, 50, green, bright_green, self.setPlayerCount, 0)
-            self.button("One Player", 350, 400, 100, 50, green, bright_green, self.setPlayerCount, 1)
-            self.button("Two Player", 500, 400, 100, 50, green, bright_green, self.setPlayerCount, 2)
+            self.button("Only AI", 200, 300, 100, 50, green, bright_green, self.setPlayerCount, 0)
+            self.button("One Player", 350, 300, 100, 50, green, bright_green, self.setPlayerCount, 1)
+            self.button("Two Player", 500, 300, 100, 50, green, bright_green, self.setPlayerCount, 2)
         elif (self.currentScreen == 4):
             self.label("Select Paddle Speed", 345, 350, 20)
             self.button("Slow", 200, 400, 100, 50, green, bright_green, self.setPaddleSpeed, "slow")
@@ -202,12 +211,16 @@ class PongGame(GameState):
         
         #Paddle(xPos, yPos, speed, team, isPlayer)
         #Ball(xPos, yPos, startingSpeed)
+        #setPlayerLivesFull()
         paddle1 =Paddle(40, 4, 1, pygame.image.load("paddle1.png"))
         paddle2 =Paddle(display_width-50, 20, 2, pygame.image.load("paddle2.png"))
         ball = Ball(display_width/2, display_height/2, 4)
-        heart1 =Heart(60, 5, 5)
-        heart2 =Heart(display_width-120, 5, 5)
-        entities_list = [paddle1, paddle2, ball, heart1, heart2]
+        entities_list = [paddle1, paddle2, ball]
+
+    def setPlayerLivesFull(self):
+        for i in range(0, len(P1LED)-1):
+            GPIO.output(P1LED[i],GPIO.HIGH)
+            GPIO.output(P1LED[i],GPIO.HIGH)
 
     def setPaddleSpeeds(self, speed):
         entities_list[0].setSpeed(speed)
@@ -259,6 +272,8 @@ class Paddle(Entity):
         self.team = team
         self.isPlayer = False
         self.speed = 5
+        self.lives = 5
+        self.scoreFont = pygame.font.Font('freesansbold.ttf',50)
 
     #in this method the paddle will try to chase the ball at it's speed. It does this by comparing the location of the ball to the location of the paddle
     def chaseBall(self):
@@ -279,47 +294,63 @@ class Paddle(Entity):
         self.speed = value
     def setIsPlayer(self, isPlayer):
         self.isPlayer = isPlayer
+
+    def scoring(self):
+        scoreDraw = self.scoreFont.render(str(self.lives),1,white)
+        if (self.team == 1):
+            gameDisplay.blit(scoreDraw, (80,5))
+        if (self.team == 2):
+            gameDisplay.blit(scoreDraw, (display_width-100,5))
     def update(self):
         if (self.isPlayer):
             if (self.team == 1):
                 #Player 1 input goes here
                 #This stuff is for now, later we will use GPIO input instead with switches
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_s:
+                    if (event.key == pygame.K_s):
                         if self.yPosEnd<display_height:
                             self.yPos +=self.speed
                             self.yPosEnd += self.speed
-                    elif event.key == pygame.K_w:
+                    elif (event.key == pygame.K_w):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
+                if (GPIO.input(p1[0]) == True):
+                    if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                if (GPIO.input(p1[1]) == True):
+                    if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
+                    
+                    
             if (self.team == 2):
                 #Player 1 input goes here
                 #if up is held, decrease the y position by speed
                 #if down is held, decrease the y position by speed
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
+                    if (event.key == pygame.K_DOWN):
                         if self.yPosEnd<display_height:
                             self.yPos +=self.speed
                             self.yPosEnd += self.speed
-                    elif event.key == pygame.K_UP:
+                    elif (event.key == pygame.K_UP):
                         if self.yPos>=0:
                             self.yPos -= self.speed
                             self.yPosEnd -= self.speed
+                if (GPIO.input(p2[0]) == True):
+                        if self.yPosEnd<display_height:
+                            self.yPos +=self.speed
+                            self.yPosEnd += self.speed
+                if (GPIO.input(p2[1]) == True):
+                        if self.yPos>=0:
+                            self.yPos -= self.speed
+                            self.yPosEnd -= self.speed
+        self.scoring()
         #if the paddle is not a player(human) it will take control of itself
         if (not self.isPlayer):
             self.chaseBall()
 
-class Heart(Entity):
-    def __init__(self, xPos, yPos, lives):
-        heartImg = pygame.image.load('heart.png')
-        Entity.__init__(self, xPos, yPos, heartImg)
-        self.lives = 5
-
-    def update(self):
-        pass
-
-        
 
 class Ball(Entity):
     def __init__(self, xPos, yPos, startingSpeed):
@@ -357,9 +388,30 @@ class Ball(Entity):
         self.calculateComponentSpeeds()
 
     def hitEnd(self):
-        if self.xPos <= 0 or self.xPosEnd >= display_width:
+        global game
+        if self.xPos <= 0:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
-                # score point to be added later #
+                entities_list[0].lives -= 1 #decrement p1 lives by 1
+                ##################################################################
+                #UNTESTED CODE
+                #for i in range(entities_list[0].lives, len(P1LED)):
+                    #GPIO.output(P1LED[i], GPIO.LOW)
+                ##################################################################
+                if (entities_list[0].lives <=0):
+                    game = MainMenu()
+                    
+                
+        if self.xPosEnd >= display_width:
+                self.__init__(display_width/2, display_height/2,self.startingSpeed)
+                entities_list[1].lives -= 1 #decrement p2 lives by 1
+                ##############################################################
+                #UNTESTED CODE
+                #for i in range(entities_list[1].lives, len(P2LED)):
+                    #GPIO.output(P2LED[i], GPIO.LOW)
+                #############################################################
+                if (entities_list[1].lives <= 0):
+                    game = MainMenu()
+        
 
     def hitPaddleDefault(self):
         self.direction = 180-self.direction
