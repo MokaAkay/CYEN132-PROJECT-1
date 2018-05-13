@@ -32,13 +32,13 @@ p2 = [23,24]
 P1LED = [17 , 16 , 13, 12, 6]
 P2LED = [18, 19, 20, 21, 22]
 
-GPIO button setup
+#GPIO button setup
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(pause, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(p1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(p2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-GPIO led setup
+#GPIO led setup
 GPIO.setup(P1LED, GPIO.OUT)
 GPIO.setup(P2LED, GPIO.OUT)
 
