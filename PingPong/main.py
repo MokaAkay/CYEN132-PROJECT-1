@@ -80,6 +80,8 @@ class MainMenu(GameState):
         GameState.__init__(self)
         self.bg = pygame.image.load("intro_bg.png")
         self.currentScreen = 0
+        GPIO.output(P1LED,False)
+        GPIO.output(P2LED,False)
     #sets up the start screen and buttons
     def start_screen(self):
         if (self.currentScreen == 0):
@@ -287,9 +289,17 @@ class Paddle(Entity):
     def scoring(self):
         scoreDraw = self.scoreFont.render(str(self.lives),1,white)
         if (self.team == 1):
-            gameDisplay.blit(scoreDraw, (80,5))
+            gameDisplay.blit(scoreDraw, (85,7))
+            for i in range(0,self.lives):
+                GPIO.output(P1LED[i],True)
+            for i in range(0,5-self.lives):
+                GPIO.output(P1LED[i],False)
         if (self.team == 2):
-            gameDisplay.blit(scoreDraw, (display_width-100,5))
+            gameDisplay.blit(scoreDraw, (display_width-105,7))
+            for i in range(0,self.lives):
+                GPIO.output(P2LED[i],True)
+            for i in range(0,5-self.lives):
+                GPIO.output(P2LED[i],False)
     def update(self):
         if (self.isPlayer):
             if (self.team == 1):
