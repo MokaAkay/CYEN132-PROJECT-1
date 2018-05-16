@@ -1,5 +1,5 @@
 
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import pygame
 import random
 import math
@@ -8,7 +8,6 @@ import time
 pygame.init()
 display_width = 800
 display_height = 475
-pygame.init()
 gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Pong!')
 clock = pygame.time.Clock()
@@ -244,7 +243,7 @@ class PongGame(GameState):
             entity.render()
         
     def update(self):
-        if event.type == pygame.KEYDOWN and (event.key == pygame.K_p):
+        if ((event.type == pygame.KEYDOWN and (event.key == pygame.K_p)) or (GPIO.input(pause) == True)):
             if (self.pauseHandler == False):
                 self.pauseHandler = True
                 if self.isPaused:
@@ -392,11 +391,6 @@ class Ball(Entity):
         if self.xPos <= 0:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)#reset ball
                 entities_list[0].lives -= 1 #decrement p1 lives by 1
-                ##################################################################
-                #UNTESTED CODE
-                #for i in range(entities_list[0].lives, len(P1LED)):
-                    #GPIO.output(P1LED[i], GPIO.LOW)
-                ##################################################################
                 if (entities_list[0].lives <=0):
                     game = MainMenu()
                     
@@ -404,11 +398,6 @@ class Ball(Entity):
         if self.xPosEnd >= display_width:
                 self.__init__(display_width/2, display_height/2,self.startingSpeed)
                 entities_list[1].lives -= 1 #decrement p2 lives by 1
-                ##############################################################
-                #UNTESTED CODE
-                #for i in range(entities_list[1].lives, len(P2LED)):
-                    #GPIO.output(P2LED[i], GPIO.LOW)
-                #############################################################
                 if (entities_list[1].lives <= 0):
                     game = MainMenu()
         
