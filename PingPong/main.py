@@ -13,12 +13,11 @@ pygame.display.set_caption('Pong!')
 clock = pygame.time.Clock()
 crashed = False
 
- 
+# Color RGB values for use later on
 black = (0,0,0)
 white = (255,255,255)
 red = (200,0,0)
 green = (0,200,0)
-
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 
@@ -43,13 +42,6 @@ GPIO.setup(P2LED, GPIO.OUT)
 
 #The entities list manages all of the entities that currently exist in the gamestate.
 entities_list = []
-
-global p1lives
-global p2lives
-
-p1lives = 5
-p2lives = 5
-
 
 #THE ENTITY CLASS IS DONE. DON'T CHANGE THIS (unless you want to try to implement animations for each of the sprites.)
 class Entity(object):
@@ -82,13 +74,13 @@ class GameState(object):
     def update(self):
         raise NotImplementedError()
 
-
-
+# The Main Menu class
 class MainMenu(GameState):
     def __init__(self):
         GameState.__init__(self)
         self.bg = pygame.image.load("intro_bg.png")
         self.currentScreen = 0
+    #sets up the start screen and buttons
     def start_screen(self):
         if (self.currentScreen == 0):
             self.button("Start",150,350,100,50,green,bright_green,self.playerSelection)
@@ -180,13 +172,11 @@ class MainMenu(GameState):
     def text_objects(self, text, font):
         textSurface = font.render(text, True, black)
         return textSurface, textSurface.get_rect()
-    
-    def start_pong(self):
-        global game
-        game = PongGame()
         
     def quitgame(self):
-        print ("quit");
+        print ("quit")
+        global crashed
+        crashed = True
         
     def update(self):
         gameDisplay.fill(white)
